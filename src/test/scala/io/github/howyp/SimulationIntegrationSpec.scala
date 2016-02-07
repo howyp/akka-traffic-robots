@@ -14,14 +14,14 @@ class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system) w
     "should emit one traffic report when there is one waypoint" in {
       val s = new Simulation {
         val system = _system
-        val waypointSource = Stream(RouteWaypoint(1, "1", Location(1.0, 1.0)))
+        val waypointSource = Map(1 -> Stream(RouteWaypoint(timestamp = "1", location = Location(1.0, 1.0))))
         val trafficConditionGenerator = () => TrafficCondition.Light
       }
       system.eventStream.subscribe(self, classOf[TrafficReport])
 
       s.run()
 
-      expectMsg(TrafficReport(1, "1", 30, TrafficCondition.Light))
+      expectMsg(TrafficReport(robotId = 1, timestamp = "1", speed = 30, condition = TrafficCondition.Light))
     }
   }
 

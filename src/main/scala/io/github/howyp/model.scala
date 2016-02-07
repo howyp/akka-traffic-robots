@@ -16,14 +16,14 @@ object TubeStation extends CsvParser[TubeStation] {
   }
 }
 
-case class RouteWaypoint(robotId: Int, timestamp: String, location: Location)
+case class RouteWaypoint(timestamp: String, location: Location)
 object RouteWaypoint extends CsvParser[RouteWaypoint] {
   def record: Parser[RouteWaypoint] = (integer ~ "," ~ quotedDouble ~ "," ~ quotedDouble ~ "," ~ quotedString) map {
-    case robotId ~ _ ~ latitude ~ _ ~ longitude ~ _ ~ timestamp => RouteWaypoint(robotId, timestamp, Location(latitude, longitude))
+    case robotId ~ _ ~ latitude ~ _ ~ longitude ~ _ ~ timestamp => RouteWaypoint(timestamp, Location(latitude, longitude))
   }
 }
 
-case class TrafficReport(robotId: Int, timestamp: String, speed: Int, condition: TrafficCondition)
+case class TrafficReport(robotId: RobotId, timestamp: String, speed: Int, condition: TrafficCondition)
 
 trait TrafficCondition
 object TrafficCondition {
