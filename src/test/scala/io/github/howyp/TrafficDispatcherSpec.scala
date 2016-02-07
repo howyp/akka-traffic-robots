@@ -25,7 +25,7 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
         RouteWaypoint(robotId = 5937, location = Location(51.487492,-0.095382), timestamp = "2011-03-22 08:01:42"),
         RouteWaypoint(robotId = 5937, location = Location(51.487545,-0.095404), timestamp = "2011-03-22 08:01:43")
       )
-      dispatcher ! Protocol.AddWaypointSource(points.iterator)
+      dispatcher ! Protocol.AddWaypointSource(points.toStream)
       dispatcher.stateData.asInstanceOf[Data.Waypoints].w.toList should contain theSameElementsInOrderAs (points)
     }
     "set up robots with the given IDs to patrol the town" in pending

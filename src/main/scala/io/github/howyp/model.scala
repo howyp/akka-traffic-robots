@@ -1,5 +1,7 @@
 package io.github.howyp
 
+import java.security.Timestamp
+
 import io.github.howyp.parse.CsvParser
 
 import scala.util.parsing.combinator.JavaTokenParsers
@@ -18,4 +20,13 @@ object RouteWaypoint extends CsvParser[RouteWaypoint] {
   def record: Parser[RouteWaypoint] = (integer ~ "," ~ quotedDouble ~ "," ~ quotedDouble ~ "," ~ quotedString) map {
     case robotId ~ _ ~ latitude ~ _ ~ longitude ~ _ ~ timestamp => RouteWaypoint(robotId, timestamp, Location(latitude, longitude))
   }
+}
+
+case class TrafficReport(robotId: Int, timestamp: String, speed: Int, condition: TrafficCondition)
+
+trait TrafficCondition
+object TrafficCondition {
+  case object Light extends TrafficCondition
+  case object Medium extends TrafficCondition
+  case object Heavy extends TrafficCondition
 }

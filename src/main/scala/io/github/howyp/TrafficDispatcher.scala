@@ -10,7 +10,9 @@ class TrafficDispatcher extends FSM[TrafficDispatcher.State, TrafficDispatcher.D
   startWith(State.Initialised, Data.Empty)
 
   when(State.Initialised) {
-    case Event(Protocol.AddWaypointSource(newPoints), Data.Empty) => goto (State.Ready) using Data.Waypoints(newPoints)
+    case Event(Protocol.AddWaypointSource(stream), Data.Empty) =>
+      context.system.eventStream.publish(TrafficReport(stream.head.robotId, stream.head.timestamp, 30, TrafficCondition.Light))
+      goto (State.Ready) using Data.Waypoints(stream)
   }
 
   when(State.Ready) { case _ => ??? }
@@ -25,10 +27,10 @@ object TrafficDispatcher {
   trait Data
   object Data {
     case object Empty extends Data
-    case class Waypoints(w: Iterator[RouteWaypoint]) extends Data
+    case class Waypoints(w: Stream[RouteWaypoint]) extends Data
   }
 
   object Protocol {
-    case class AddWaypointSource(s: Iterator[RouteWaypoint])
+    case class AddWaypointSource(s: Stream[RouteWaypoint])
   }
 }
