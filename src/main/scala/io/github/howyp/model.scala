@@ -4,6 +4,7 @@ import java.security.Timestamp
 
 import io.github.howyp.parse.CsvParser
 
+import scala.util.Random
 import scala.util.parsing.combinator.JavaTokenParsers
 
 case class Location(latitude: Double, longitude: Double)
@@ -26,6 +27,12 @@ case class TrafficReport(robotId: Int, timestamp: String, speed: Int, condition:
 
 trait TrafficCondition
 object TrafficCondition {
+  def random(): TrafficCondition = Random.nextInt(3) match {
+    case 0 => Light
+    case 1 => Medium
+    case 2 => Heavy
+  }
+
   case object Light extends TrafficCondition
   case object Medium extends TrafficCondition
   case object Heavy extends TrafficCondition

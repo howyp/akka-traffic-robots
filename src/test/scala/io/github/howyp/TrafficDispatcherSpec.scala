@@ -1,20 +1,14 @@
 package io.github.howyp
 
-import java.util.concurrent.TimeUnit
-
-import akka.actor.ActorSystem
 import akka.testkit.TestFSMRef
-import akka.util.Timeout
 import io.github.howyp.test.actors.ActorSpec
-import org.scalatest.{Matchers, FreeSpec, Suite}
-
-import scala.concurrent.duration.FiniteDuration
+import org.scalatest.{FreeSpec, Matchers}
 
 class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
   import TrafficDispatcher._
 
   "The traffic dispatcher" - {
-    val dispatcher = TestFSMRef(new TrafficDispatcher)
+    val dispatcher = TestFSMRef(new TrafficDispatcher(() => TrafficCondition.Light))
     "start in an initial state" in {
       dispatcher should have ('stateName (State.Initialised), 'stateData (Data.Empty))
     }

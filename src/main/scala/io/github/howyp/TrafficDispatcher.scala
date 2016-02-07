@@ -3,7 +3,7 @@ package io.github.howyp
 import akka.actor.{FSM, Actor}
 import io.github.howyp.TrafficDispatcher.Protocol
 
-class TrafficDispatcher extends FSM[TrafficDispatcher.State, TrafficDispatcher.Data] {
+class TrafficDispatcher(trafficConditionGenerator: () => TrafficCondition) extends FSM[TrafficDispatcher.State, TrafficDispatcher.Data] {
   import TrafficDispatcher.State
   import TrafficDispatcher.Data
 
