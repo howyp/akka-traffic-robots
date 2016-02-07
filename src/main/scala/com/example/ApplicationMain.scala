@@ -1,12 +1,14 @@
 package com.example
 
-import akka.actor.ActorSystem
+import akka.actor.{Props, ActorSystem}
+import io.github.howyp.{TrafficDispatcher, RouteWaypoint}
+
+import scala.io.Source
 
 object ApplicationMain extends App {
-  val system = ActorSystem("MyActorSystem")
-//  val pingActor = system.actorOf(PingActor.props, "pingActor")
-//  pingActor ! PingActor.Initialize
-  // This example app will ping pong 3 times and thereafter terminate the ActorSystem - 
-  // see counter logic in PingActor
+  private val robotIds = List(5937, 6043)
+
+  val system = ActorSystem("traffic-robots")
+  val dispatcherActor = system.actorOf(Props[TrafficDispatcher], "traffic-dispatcher")
   system.awaitTermination()
 }
