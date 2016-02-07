@@ -1,7 +1,7 @@
 package io.github.howyp
 
-import org.scalatest.matchers.{MatchResult, Matcher}
-import org.scalatest.{Matchers, FreeSpec}
+import org.scalatest.matchers.Matcher
+import org.scalatest.{FreeSpec, Matchers}
 
 import scala.util.parsing.combinator.Parsers
 
