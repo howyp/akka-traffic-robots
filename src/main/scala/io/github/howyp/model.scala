@@ -7,6 +7,8 @@ import io.github.howyp.parse.CsvParser
 import scala.util.Random
 import scala.util.parsing.combinator.JavaTokenParsers
 
+//TODO getting a bit big?
+
 case class Location(latitude: Double, longitude: Double)
 
 case class TubeStation(name: String, location: Location)
@@ -23,7 +25,9 @@ object RouteWaypoint extends CsvParser[RouteWaypoint] {
   }
 }
 
-case class TrafficReport(robotId: RobotId, timestamp: String, speed: Int, condition: TrafficCondition)
+trait SimulationEvent
+case class TrafficReport(robotId: RobotId, timestamp: String, speed: Int, condition: TrafficCondition) extends SimulationEvent
+case class RobotMoved(newLocation: Location) extends SimulationEvent
 
 trait TrafficCondition
 object TrafficCondition {

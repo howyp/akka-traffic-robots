@@ -38,7 +38,12 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
     "should reply with a set of routes when requested" in {
       val fakeChild = TestProbe()
       dispatcher.!(Protocol.MorePointsRequired)(fakeChild.ref)
-      fakeChild.expectMsg(Protocol.VisitWaypoints(points))
+      fakeChild.expectMsgAllOf(
+        Protocol.VisitWaypoint(points(0)),
+        Protocol.VisitWaypoint(points(1)),
+        Protocol.VisitWaypoint(points(2)),
+        Protocol.VisitWaypoint(points(3))
+      )
       dispatcher.stateData.asInstanceOf[Data.Waypoints].w.toList should be (empty)
     }
   }

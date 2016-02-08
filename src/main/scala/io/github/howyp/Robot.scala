@@ -13,6 +13,7 @@ class Robot extends Actor {
   }
 
   def receive = {
-    case _ =>
+    case TrafficDispatcher.Protocol.VisitWaypoint(RouteWaypoint(_, newLocation)) =>
+      context.system.eventStream.publish(RobotMoved(newLocation))
   }
 }

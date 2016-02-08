@@ -2,7 +2,7 @@ package io.github.howyp
 
 import akka.actor.FSM
 import io.github.howyp.TrafficDispatcher.Protocol
-import io.github.howyp.TrafficDispatcher.Protocol.{MorePointsRequired, VisitWaypoints}
+import io.github.howyp.TrafficDispatcher.Protocol.{MorePointsRequired, VisitWaypoint}
 
 class TrafficDispatcher(trafficConditionGenerator: () => TrafficCondition, robotFactory: RobotFactory) extends FSM[TrafficDispatcher.State, TrafficDispatcher.Data] {
   import TrafficDispatcher.{Data, State}
@@ -18,7 +18,7 @@ class TrafficDispatcher(trafficConditionGenerator: () => TrafficCondition, robot
   when(State.Ready) {
     case Event(MorePointsRequired, Data.Waypoints(stream)) =>
       stream.splitAt(10) match { case (firstTen, remaining) =>
-        sender() ! VisitWaypoints(firstTen.toList)
+        for (point <- firstTen) sender() ! VisitWaypoint(point)
         stay() using Data.Waypoints(remaining)
       }
   }
@@ -40,6 +40,6 @@ object TrafficDispatcher {
   object Protocol {
     case class AddWaypoints(robotId: RobotId, waypoints: Stream[RouteWaypoint])
     case object MorePointsRequired
-    case class VisitWaypoints(waypoints: List[RouteWaypoint])
+    case class VisitWaypoint(waypoint: RouteWaypoint)
   }
 }

@@ -1,14 +1,20 @@
 package io.github.howyp
 
 import akka.actor.ActorSystem
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.testkit.{TestProbe, ImplicitSender, TestKit}
+import io.github.howyp.test.actors.EventStreamListening
 import org.scalatest.{BeforeAndAfterAll, FreeSpecLike, Matchers}
 
-class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
-  with FreeSpecLike with Matchers with BeforeAndAfterAll {
+class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system)
+  with ImplicitSender
+  with FreeSpecLike
+  with Matchers
+  with BeforeAndAfterAll
+  with EventStreamListening {
 
   def this() = this(ActorSystem("SimulationIntegrationSpec"))
 
+  listenOnEventStreamFor(classOf[SimulationEvent])
 
   "The simulation" - {
     "should emit one traffic report when there is one waypoint" in {
@@ -17,11 +23,10 @@ class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system) w
         val waypointSource = Map(1 -> Stream(RouteWaypoint(timestamp = "1", location = Location(1.0, 1.0))))
         val trafficConditionGenerator = () => TrafficCondition.Light
       }
-      system.eventStream.subscribe(self, classOf[TrafficReport])
 
       s.run()
 
-      expectMsg(TrafficReport(robotId = 1, timestamp = "1", speed = 30, condition = TrafficCondition.Light))
+      eventStream.expectMsg(TrafficReport(robotId = 1, timestamp = "1", speed = 30, condition = TrafficCondition.Light))
     }
   }
 
@@ -29,3 +34,4 @@ class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system) w
     system.shutdown()
   }
 }
+

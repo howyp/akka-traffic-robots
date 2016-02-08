@@ -11,8 +11,6 @@ trait Simulation {
   def system: ActorSystem
 
   def run() = {
-    system.actorOf(Props[TrafficAnnouncer])
-
     val dispatcherActor = system.actorOf(Props.apply(
       new TrafficDispatcher(trafficConditionGenerator, (f, id) => f.actorOf(Props[Robot], id.toString))
     ), "traffic-dispatcher")
@@ -36,10 +34,13 @@ object SimulationFromFiles extends App {
     val waypointSource = waypoints
     val trafficConditionGenerator = TrafficCondition.random _
     val system = ActorSystem("traffic-robots")
+
+    system.actorOf(Props[TrafficAnnouncer])
   }
 
   self.run()
 
+  //TODO remove
   Thread.sleep(1000)
   self.system.shutdown()
 }
