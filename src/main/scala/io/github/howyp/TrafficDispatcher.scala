@@ -12,7 +12,6 @@ class TrafficDispatcher(trafficConditionGenerator: () => TrafficCondition, robot
   when(State.Initialised) {
     case Event(Protocol.AddWaypoints(robotId, stream), Data.Empty) =>
       robotFactory(context, robotId)
-      context.system.eventStream.publish(TrafficReport(1, stream.head.timestamp, 30, TrafficCondition.Light))
       goto (State.Ready) using Data.Waypoints(stream)
   }
 
@@ -20,7 +19,7 @@ class TrafficDispatcher(trafficConditionGenerator: () => TrafficCondition, robot
     case Event(MorePointsRequired, Data.Waypoints(stream)) =>
       stream.splitAt(10) match { case (firstTen, remaining) =>
         sender() ! VisitWaypoints(firstTen.toList)
-        stay() using Data.Waypoints(remaining )
+        stay() using Data.Waypoints(remaining)
       }
   }
 }
@@ -37,6 +36,7 @@ object TrafficDispatcher {
     case class Waypoints(w: Stream[RouteWaypoint]) extends Data
   }
 
+  //TODO maybe extract outside?
   object Protocol {
     case class AddWaypoints(robotId: RobotId, waypoints: Stream[RouteWaypoint])
     case object MorePointsRequired

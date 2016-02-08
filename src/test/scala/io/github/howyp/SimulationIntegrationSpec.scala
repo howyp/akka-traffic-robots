@@ -2,7 +2,7 @@ package io.github.howyp
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import org.scalatest.{FreeSpecLike, BeforeAndAfterAll, Matchers, FreeSpec}
+import org.scalatest.{BeforeAndAfterAll, FreeSpecLike, Matchers}
 
 class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
   with FreeSpecLike with Matchers with BeforeAndAfterAll {

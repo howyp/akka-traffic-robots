@@ -1,7 +1,7 @@
 package io.github.howyp
 
-import akka.actor.{ActorRef, ActorRefFactory}
-import akka.testkit.{TestProbe, TestActorRef, TestFSMRef}
+import akka.actor.ActorRefFactory
+import akka.testkit.{TestFSMRef, TestProbe}
 import io.github.howyp.test.actors.ActorSpec
 import org.scalatest.{FreeSpec, Matchers}
 
