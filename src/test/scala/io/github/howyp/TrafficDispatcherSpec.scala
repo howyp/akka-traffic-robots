@@ -17,7 +17,7 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
         TestProbe().ref
       }
     }
-    val dispatcher = TestFSMRef(new TrafficDispatcher(() => TrafficCondition.Light, robotFactory))
+    val dispatcher = TestFSMRef(new TrafficDispatcher(robotFactory))
     val points = List(
       RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = "2011-03-22 08:01:40"),
       RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = "2011-03-22 08:01:41"),

@@ -30,15 +30,14 @@ class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system)
 
       s.run()
 
-      eventStream.expectMsg(TrafficReport(robotId = 1, timestamp = "1", speed = 30, condition = TrafficCondition.Light))
-//      eventStream.expectMsg(
-//        TrafficReport(
-//          robotId = firstRobotId,
-//          timestamp = waypointAtTime1.timestamp,
-//          speed = 0,
-//          condition = TrafficCondition.Light
-//        )
-//      )
+      eventStream.receiveN(2) should contain (
+        TrafficReport(
+          robotId = firstRobotId,
+          timestamp = waypointAtTime1.timestamp,
+          speed = 0,
+          condition = TrafficCondition.Light
+        )
+      )
     }
   }
 

@@ -1,26 +1,32 @@
 package io.github.howyp
 
-import akka.actor.{Props, ActorRef, ActorRefFactory, Actor}
+import akka.actor.{Actor, ActorRef, ActorRefFactory, Props}
 
-class Robot(tubeStations: List[TubeStation]) extends Actor {
+class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition) extends Actor {
 
-  //FIXME remove
-  context.system.eventStream.publish(TrafficReport(1, "1", 30, TrafficCondition.Light))
+  val stationsByLocation: Map[Location, TubeStation] =
+    tubeStations.map(s => s.location -> s)(collection.breakOut)
 
   override def preStart() {
     context.parent ! TrafficDispatcher.Protocol.MorePointsRequired
   }
 
   def receive = {
-    case TrafficDispatcher.Protocol.VisitWaypoint(RouteWaypoint(_, newLocation)) =>
+    case TrafficDispatcher.Protocol.VisitWaypoint(RouteWaypoint(timestamp, newLocation)) =>
       context.system.eventStream.publish(RobotMoved(newLocation))
+      stationsByLocation.get(newLocation) foreach { station =>
+        context.system.eventStream.publish(TrafficReport(id, timestamp, 0, trafficConditionGenerator()))
+      }
   }
 }
 object Robot {
-  def props(tubeStations: List[TubeStation]) = Props.apply(new Robot(tubeStations))
+  def props(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition) =
+    Props.apply(new Robot(id, tubeStations, trafficConditionGenerator))
 
+  //TODO can this be replaced by just injecting props?
   type Factory = (ActorRefFactory, RobotId) => ActorRef
   object Factory {
-    def apply(tubeStations: List[TubeStation]): Factory = (f, id) => { f.actorOf(props(tubeStations), id.toString) }
+    def apply(tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition): Factory =
+      (f, id) => { f.actorOf(props(id, tubeStations, trafficConditionGenerator), id.toString) }
   }
 }
