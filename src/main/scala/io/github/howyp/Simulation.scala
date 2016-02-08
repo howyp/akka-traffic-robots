@@ -6,14 +6,13 @@ import scala.collection.immutable.IndexedSeq
 import scala.io.Source
 
 trait Simulation {
+  def tubeStations: List[TubeStation]
   def waypointSource: Map[RobotId, Stream[RouteWaypoint]]
   def trafficConditionGenerator: () => TrafficCondition
   def system: ActorSystem
 
   def run() = {
-    val dispatcherActor = system.actorOf(Props.apply(
-      new TrafficDispatcher(trafficConditionGenerator, (f, id) => f.actorOf(Props[Robot], id.toString))
-    ), "traffic-dispatcher")
+    val dispatcherActor = system.actorOf(TrafficDispatcher.props(trafficConditionGenerator, tubeStations), "traffic-dispatcher")
 
     waypointSource.foreach {
       case (id, source) => dispatcherActor ! TrafficDispatcher.Protocol.AddWaypoints(id, source)
@@ -34,6 +33,7 @@ object SimulationFromFiles extends App {
     val waypointSource = waypoints
     val trafficConditionGenerator = TrafficCondition.random _
     val system = ActorSystem("traffic-robots")
+    def tubeStations = ???
 
     system.actorOf(Props[TrafficAnnouncer])
   }

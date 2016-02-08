@@ -1,10 +1,10 @@
 package io.github.howyp
 
-import akka.actor.FSM
+import akka.actor.{Props, FSM}
 import io.github.howyp.TrafficDispatcher.Protocol
 import io.github.howyp.TrafficDispatcher.Protocol.{MorePointsRequired, VisitWaypoint}
 
-class TrafficDispatcher(trafficConditionGenerator: () => TrafficCondition, robotFactory: RobotFactory) extends FSM[TrafficDispatcher.State, TrafficDispatcher.Data] {
+class TrafficDispatcher(trafficConditionGenerator: () => TrafficCondition, robotFactory: Robot.Factory) extends FSM[TrafficDispatcher.State, TrafficDispatcher.Data] {
   import TrafficDispatcher.{Data, State}
 
   startWith(State.Initialised, Data.Empty)
@@ -24,6 +24,9 @@ class TrafficDispatcher(trafficConditionGenerator: () => TrafficCondition, robot
   }
 }
 object TrafficDispatcher {
+  def props(trafficConditionGenerator: () => TrafficCondition, tubeStations: List[TubeStation]) =
+    Props.apply(new TrafficDispatcher(trafficConditionGenerator, Robot.Factory(tubeStations)))
+
   trait State
   object State {
     case object Initialised extends State

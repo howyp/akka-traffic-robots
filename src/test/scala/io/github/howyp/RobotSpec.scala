@@ -8,7 +8,7 @@ import org.scalatest.{Matchers, FreeSpec}
 class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamListening {
   "A Robot" - {
     val dispatcher = TestProbe()
-    val robot = TestActorRef(props = Props[Robot], supervisor = dispatcher.ref, name = "robot")
+    val robot = TestActorRef(props = Props(new Robot(List.empty)), supervisor = dispatcher.ref, name = "robot")
     listenOnEventStreamFor(classOf[SimulationEvent])
 
     "should request some waypoints from the dispatcher on startup" in {
