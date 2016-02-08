@@ -2,6 +2,7 @@ package io.github.howyp
 
 import akka.actor.ActorRefFactory
 import akka.testkit.{TestFSMRef, TestProbe}
+import io.github.howyp.TrafficDispatcher.Protocol.AddWaypoints
 import io.github.howyp.test.actors.ActorSpec
 import org.scalatest.{FreeSpec, Matchers}
 
@@ -22,7 +23,15 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
       RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = "2011-03-22 08:01:40"),
       RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = "2011-03-22 08:01:41"),
       RouteWaypoint(location = Location(51.487492,-0.095382), timestamp = "2011-03-22 08:01:42"),
-      RouteWaypoint(location = Location(51.487545,-0.095404), timestamp = "2011-03-22 08:01:43")
+      RouteWaypoint(location = Location(51.487545,-0.095404), timestamp = "2011-03-22 08:01:43"),
+      RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = "2011-03-22 08:01:44"),
+      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = "2011-03-22 08:01:45"),
+      RouteWaypoint(location = Location(51.487492,-0.095382), timestamp = "2011-03-22 08:01:46"),
+      RouteWaypoint(location = Location(51.487545,-0.095404), timestamp = "2011-03-22 08:01:47"),
+      RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = "2011-03-22 08:01:48"),
+      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = "2011-03-22 08:01:49"),
+      RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = "2011-03-22 08:01:50"),
+      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = "2011-03-22 08:01:51")
     )
 
     "start in an initial state" in {
@@ -35,14 +44,31 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
     "set up robots with the given IDs to patrol the town" in {
       robotFactory.createdRobots should contain only 5937
     }
-    "should reply with a set of routes when requested" in {
+    "should reply with a set of routes when requested, limited to the batch size" in {
       val fakeChild = TestProbe()
       dispatcher.!(Protocol.MorePointsRequired)(fakeChild.ref)
       fakeChild.expectMsgAllOf(
         Protocol.VisitWaypoint(points(0)),
         Protocol.VisitWaypoint(points(1)),
         Protocol.VisitWaypoint(points(2)),
-        Protocol.VisitWaypoint(points(3))
+        Protocol.VisitWaypoint(points(3)),
+        Protocol.VisitWaypoint(points(4)),
+        Protocol.VisitWaypoint(points(5)),
+        Protocol.VisitWaypoint(points(6)),
+        Protocol.VisitWaypoint(points(7)),
+        Protocol.VisitWaypoint(points(8)),
+        Protocol.VisitWaypoint(points(9)),
+        Protocol.EndOfWaypointBatch
+      )
+      dispatcher.stateData.asInstanceOf[Data.Waypoints].w.toList should be (List(points(10), points (11)))
+    }
+    "should reply with a set of routes when requested, with only those that remain if less than the batch size" in {
+      val fakeChild = TestProbe()
+      dispatcher.!(Protocol.MorePointsRequired)(fakeChild.ref)
+      fakeChild.expectMsgAllOf(
+        Protocol.VisitWaypoint(points(10)),
+        Protocol.VisitWaypoint(points(11)),
+        Protocol.EndOfWaypointBatch
       )
       dispatcher.stateData.asInstanceOf[Data.Waypoints].w.toList should be (empty)
     }
