@@ -46,7 +46,6 @@ object Robot {
 
   type Id = Int
 
-  //TODO can this be replaced by just injecting props?
   type Factory = (ActorRefFactory, Robot.Id) => ActorRef
   object Factory {
     def apply(tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition): Factory =

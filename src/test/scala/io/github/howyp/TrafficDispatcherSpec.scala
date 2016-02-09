@@ -39,17 +39,17 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
     val robotId1 = 1234
     val robotId2 = 5678
 
-    "start in an initial state" in {
+    "starts in an initial state" in {
       dispatcher should have ('stateName (State.Initialised), 'stateData (Data.Empty))
     }
-    "allow a set of waypoints to be configured" in {
+    "allows a set of waypoints to be configured" in {
       dispatcher ! Protocol.AddWaypoints(robotId = robotId1, waypoints = points.toStream #::: Stream(`waypointAfter8:10AM`))
       dispatcher.stateData.asInstanceOf[Data.Waypoints].waypoints should be (Map(robotId1 -> points.toStream))
     }
-    "set up robots with the given IDs to patrol the town" in {
+    "sets up robots with the given IDs to patrol the town" in {
       robotFactory.createdRobots should contain only robotId1
     }
-    "should reply with a set of routes when requested, limited to the batch size" in {
+    "replies with a set of routes when requested, limited to the batch size of 10" in {
       val testChildRobot1 = TestProbe()
       dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot1.ref)
       testChildRobot1.expectMsgAllOf(
@@ -69,7 +69,7 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
         Map(robotId1 -> Stream(points(10), points (11), points (12)))
       )
     }
-    "should only reply with a routes for the requesting robot" in {
+    "only replies with a routes for the requesting robot" in {
       val testChildRobot2 = TestProbe()
       val pointsForRobot2 = points.map(p => p.copy(location = Location(p.location.latitude + 1, 0)))
       dispatcher ! Protocol.AddWaypoints(robotId = robotId2, waypoints = pointsForRobot2.toStream)
@@ -88,7 +88,7 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
         Protocol.EndOfWaypointBatch
       )
     }
-    "should reply with a set of routes when requested, with only those that remain that are before 8:10 AM, if less than the batch size" in {
+    "replies with a set of routes when requested, with only those that remain that are before 8:10 AM, if less than the batch size" in {
       val testChildRobot1 = TestProbe()
       dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot1.ref)
       testChildRobot1.expectMsgAllOf(
@@ -99,12 +99,12 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
       )
       dispatcher.stateData.asInstanceOf[Data.Waypoints].waypoints(robotId1) should be (empty)
     }
-    "should tell a robot to shut down if more routes are requested but none remain for it" in {
+    "tells a robot to shut down if more routes are requested but none remain for it" in {
       val testChildRobot1 = TestProbe()
       dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot1.ref)
       testChildRobot1.expectMsg(Protocol.Shutdown)
     }
-    "should terminate the simulation after all robots have shutdown" in {
+    "terminates the simulation after all robots have shutdown" in {
       val testChildRobot1 = TestProbe()
       dispatcher.!(Protocol.MorePointsRequired(robotId2))(testChildRobot1.ref)
       dispatcher.!(Protocol.MorePointsRequired(robotId2))(testChildRobot1.ref)
