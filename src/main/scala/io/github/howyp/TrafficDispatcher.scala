@@ -1,8 +1,7 @@
 package io.github.howyp
 
 import akka.actor.{FSM, Props}
-import io.github.howyp.TrafficDispatcher.Protocol
-import io.github.howyp.TrafficDispatcher.Protocol.{EndOfWaypointBatch, VisitWaypoint}
+import io.github.howyp.Protocol.{EndOfWaypointBatch, VisitWaypoint}
 
 class TrafficDispatcher(robotFactory: Robot.Factory) extends FSM[TrafficDispatcher.State, TrafficDispatcher.Data] {
   import TrafficDispatcher.{Data, State}
@@ -46,13 +45,5 @@ object TrafficDispatcher {
   object Data {
     case object Empty extends Data
     case class Waypoints(waypoints: Map[RobotId, Stream[RouteWaypoint]]) extends Data
-  }
-
-  //TODO maybe extract outside?
-  object Protocol {
-    case class AddWaypoints(robotId: RobotId, waypoints: Stream[RouteWaypoint])
-    case class MorePointsRequired(robotId: RobotId)
-    case class VisitWaypoint(waypoint: RouteWaypoint)
-    case object EndOfWaypointBatch
   }
 }

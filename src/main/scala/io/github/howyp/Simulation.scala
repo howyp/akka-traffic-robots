@@ -15,7 +15,7 @@ trait Simulation {
     val dispatcherActor = system.actorOf(TrafficDispatcher.props(trafficConditionGenerator, tubeStations), "traffic-dispatcher")
 
     waypointSource.foreach {
-      case (id, source) => dispatcherActor ! TrafficDispatcher.Protocol.AddWaypoints(id, source)
+      case (id, source) => dispatcherActor ! Protocol.AddWaypoints(id, source)
     }
   }
 }

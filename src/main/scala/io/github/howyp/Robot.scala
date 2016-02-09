@@ -8,17 +8,17 @@ class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenera
     tubeStations.map(s => s.location -> s)(collection.breakOut)
 
   override def preStart() {
-    context.parent ! TrafficDispatcher.Protocol.MorePointsRequired(id)
+    context.parent ! Protocol.MorePointsRequired(id)
   }
 
   def receive = {
-    case TrafficDispatcher.Protocol.VisitWaypoint(RouteWaypoint(timestamp, newLocation)) =>
+    case Protocol.VisitWaypoint(RouteWaypoint(timestamp, newLocation)) =>
       context.system.eventStream.publish(RobotMoved(newLocation))
       stationsByLocation.get(newLocation) foreach { station =>
         context.system.eventStream.publish(TrafficReport(id, timestamp, 0, trafficConditionGenerator()))
       }
-    case TrafficDispatcher.Protocol.EndOfWaypointBatch =>
-      context.parent ! TrafficDispatcher.Protocol.MorePointsRequired(id)
+    case Protocol.EndOfWaypointBatch =>
+      context.parent ! Protocol.MorePointsRequired(id)
   }
 }
 object Robot {
