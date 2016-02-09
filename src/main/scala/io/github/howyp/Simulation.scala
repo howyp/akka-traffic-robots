@@ -17,13 +17,14 @@ trait Simulation {
     waypointSource.foreach {
       case (id, source) => dispatcherActor ! Protocol.AddWaypoints(id, source)
     }
+    system.awaitTermination()
   }
 }
 
 object SimulationFromFiles extends App {
   private val robotIds = List(5937, 6043)
 
-  private val self = new Simulation {
+  private val simulation = new Simulation {
     val trafficConditionGenerator = TrafficCondition.random _
     val system = ActorSystem("traffic-robots")
 
@@ -43,9 +44,5 @@ object SimulationFromFiles extends App {
     system.actorOf(Props[TrafficAnnouncer])
   }
 
-  self.run()
-
-  //TODO remove
-  Thread.sleep(10000)
-  self.system.shutdown()
+  simulation.run()
 }

@@ -5,4 +5,6 @@ object Protocol {
   case class MorePointsRequired(robotId: RobotId)
   case class VisitWaypoint(waypoint: RouteWaypoint)
   case object EndOfWaypointBatch
+  case object Shutdown
+  case class ShutdownComplete(robotId: RobotId)
 }

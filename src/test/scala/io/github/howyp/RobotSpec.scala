@@ -63,5 +63,12 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
       robot ! Protocol.EndOfWaypointBatch
       dispatcher.expectMsg(Protocol.MorePointsRequired(id))
     }
+
+    "kill itself if asked to shut down" in {
+      dispatcher.watch(robot)
+      robot.!(Protocol.Shutdown)(dispatcher.ref)
+      dispatcher.expectMsg(Protocol.ShutdownComplete(id))
+      dispatcher.expectTerminated(robot)
+    }
   }
 }

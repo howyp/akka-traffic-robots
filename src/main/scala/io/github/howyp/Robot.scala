@@ -24,6 +24,10 @@ class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenera
 
     case Protocol.EndOfWaypointBatch =>
       context.parent ! Protocol.MorePointsRequired(id)
+
+    case Protocol.Shutdown =>
+      sender() ! Protocol.ShutdownComplete(id)
+      context.stop(self)
   }
 
   def moveTo(newPoint: RouteWaypoint): Double = {

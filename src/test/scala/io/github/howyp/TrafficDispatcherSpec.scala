@@ -2,7 +2,7 @@ package io.github.howyp
 
 import java.time.LocalDateTime
 
-import akka.actor.ActorRefFactory
+import akka.actor.{Terminated, ActorRefFactory}
 import akka.testkit.{TestFSMRef, TestProbe}
 import io.github.howyp.test.actors.ActorSpec
 import org.scalatest.{FreeSpec, Matchers}
@@ -48,9 +48,9 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
       robotFactory.createdRobots should contain only robotId1
     }
     "should reply with a set of routes when requested, limited to the batch size" in {
-      val testChildRobot = TestProbe()
-      dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot.ref)
-      testChildRobot.expectMsgAllOf(
+      val testChildRobot1 = TestProbe()
+      dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot1.ref)
+      testChildRobot1.expectMsgAllOf(
         Protocol.VisitWaypoint(points(0)),
         Protocol.VisitWaypoint(points(1)),
         Protocol.VisitWaypoint(points(2)),
@@ -68,24 +68,50 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
       )
     }
     "should only reply with a routes for the requesting robot" in {
-      val testChildRobot = TestProbe()
-      dispatcher.!(Protocol.MorePointsRequired(robotId2))(testChildRobot.ref)
-      testChildRobot.expectNoMsg()
+      val testChildRobot2 = TestProbe()
+      val pointsForRobot2 = points.map(p => p.copy(location = Location(p.location.latitude + 1, 0)))
+      dispatcher ! Protocol.AddWaypoints(robotId = robotId2, waypoints = pointsForRobot2.toStream)
+      dispatcher.!(Protocol.MorePointsRequired(robotId2))(testChildRobot2.ref)
+      testChildRobot2.expectMsgAllOf(
+        Protocol.VisitWaypoint(pointsForRobot2(0)),
+        Protocol.VisitWaypoint(pointsForRobot2(1)),
+        Protocol.VisitWaypoint(pointsForRobot2(2)),
+        Protocol.VisitWaypoint(pointsForRobot2(3)),
+        Protocol.VisitWaypoint(pointsForRobot2(4)),
+        Protocol.VisitWaypoint(pointsForRobot2(5)),
+        Protocol.VisitWaypoint(pointsForRobot2(6)),
+        Protocol.VisitWaypoint(pointsForRobot2(7)),
+        Protocol.VisitWaypoint(pointsForRobot2(8)),
+        Protocol.VisitWaypoint(pointsForRobot2(9)),
+        Protocol.EndOfWaypointBatch
+      )
     }
     "should reply with a set of routes when requested, with only those that remain if less than the batch size" in {
-      val testChildRobot = TestProbe()
-      dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot.ref)
-      testChildRobot.expectMsgAllOf(
+      val testChildRobot1 = TestProbe()
+      dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot1.ref)
+      testChildRobot1.expectMsgAllOf(
         Protocol.VisitWaypoint(points(10)),
         Protocol.VisitWaypoint(points(11)),
         Protocol.EndOfWaypointBatch
       )
-      dispatcher.stateData.asInstanceOf[Data.Waypoints].waypoints should be (Map(robotId1 -> Stream.empty))
+      dispatcher.stateData.asInstanceOf[Data.Waypoints].waypoints(robotId1) should be (empty)
     }
-    "should not reply if more routes are requested but none remain for that robot" in {
-      val testChildRobot = TestProbe()
-      dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot.ref)
-      testChildRobot.expectNoMsg()
+    "should tell a robot to shut down if more routes are requested but none remain for it" in {
+      val testChildRobot1 = TestProbe()
+      dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot1.ref)
+      testChildRobot1.expectMsg(Protocol.Shutdown)
+    }
+    "should terminate the simulation after all robots have shutdown" in {
+      val testChildRobot1 = TestProbe()
+      dispatcher.!(Protocol.MorePointsRequired(robotId2))(testChildRobot1.ref)
+      dispatcher.!(Protocol.MorePointsRequired(robotId2))(testChildRobot1.ref)
+
+      dispatcher ! Protocol.ShutdownComplete(robotId1)
+      dispatcher ! Protocol.ShutdownComplete(robotId2)
+
+      val watcher = TestProbe()
+      watcher.watch(dispatcher)
+      watcher.expectTerminated(dispatcher)
     }
   }
 }

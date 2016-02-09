@@ -3,6 +3,7 @@ package io.github.howyp
 import akka.actor.{FSM, Props}
 import akka.event.LoggingReceive
 import io.github.howyp.Protocol.{EndOfWaypointBatch, VisitWaypoint}
+import scala.concurrent.duration._
 
 class TrafficDispatcher(robotFactory: Robot.Factory) extends FSM[TrafficDispatcher.State, TrafficDispatcher.Data] {
   import TrafficDispatcher.{Data, State}
@@ -20,25 +21,37 @@ class TrafficDispatcher(robotFactory: Robot.Factory) extends FSM[TrafficDispatch
       robotFactory(context, robotId)
       stay() using Data.Waypoints(w + (robotId -> stream))
 
-    case Event(Protocol.MorePointsRequired(robotId), Data.Waypoints(waypoints)) =>
+    case Event(Protocol.ShutdownComplete(robotId), waypoints: Data.Waypoints) =>
+      waypoints.remove(robotId) match {
+        case remaining: Data.Waypoints => stay() using remaining
+        case Data.Empty => stop()
+      }
+
+    case Event(Protocol.MorePointsRequired(robotId), waypoints: Data.Waypoints) =>
       waypoints.get(robotId) match {
         case None => stay()
         case Some(waypointsForRobot) => waypointsForRobot.splitAt (10) match {
           case (Stream.Empty, _) =>
-            stay()
+            stay() replying Protocol.Shutdown
           case (firstTen, remaining) =>
             for (point <- firstTen) sender () ! VisitWaypoint (point)
-            sender() ! EndOfWaypointBatch
-            stay() using Data.Waypoints (waypoints + (robotId -> remaining) )
+            stay() replying EndOfWaypointBatch using waypoints.update(robotId, remaining)
         }
       }
   }
 
   override def receive = LoggingReceive(super.receive)
 }
+trait ShutdownSystemOnTermination { this: TrafficDispatcher =>
+  onTermination { case _ =>
+    // Allow time for the logger to complete
+    Thread.sleep(1000)
+    context.system.shutdown()
+  }
+}
 object TrafficDispatcher {
   def props(trafficConditionGenerator: () => TrafficCondition, tubeStations: List[TubeStation]) =
-    Props.apply(new TrafficDispatcher(Robot.Factory(tubeStations, trafficConditionGenerator)))
+    Props.apply(new TrafficDispatcher(Robot.Factory(tubeStations, trafficConditionGenerator)) with ShutdownSystemOnTermination)
 
   trait State
   object State {
@@ -49,6 +62,15 @@ object TrafficDispatcher {
   trait Data
   object Data {
     case object Empty extends Data
-    case class Waypoints(waypoints: Map[RobotId, Stream[RouteWaypoint]]) extends Data
+    case class Waypoints(waypoints: Map[RobotId, Stream[RouteWaypoint]]) extends Data {
+      val get = waypoints.get _
+      def isEmpty = waypoints.isEmpty
+      def remove(robotId: RobotId) = {
+        val w = Waypoints(waypoints.-(robotId))
+        if (w.isEmpty) Data.Empty else w
+      }
+      def update(robotId: RobotId, newPointsForRobot: Stream[RouteWaypoint]) =
+        Waypoints(waypoints + (robotId -> newPointsForRobot))
+    }
   }
 }
