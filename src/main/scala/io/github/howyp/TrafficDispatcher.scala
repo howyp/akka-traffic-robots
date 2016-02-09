@@ -67,14 +67,14 @@ object TrafficDispatcher {
   trait Data
   object Data {
     case object Empty extends Data
-    case class Waypoints(waypoints: Map[RobotId, Stream[RouteWaypoint]]) extends Data {
+    case class Waypoints(waypoints: Map[Robot.Id, Stream[RouteWaypoint]]) extends Data {
       val get = waypoints.get _
       def isEmpty = waypoints.isEmpty
-      def remove(robotId: RobotId) = {
+      def remove(robotId: Robot.Id) = {
         val w = Waypoints(waypoints.-(robotId))
         if (w.isEmpty) Data.Empty else w
       }
-      def update(robotId: RobotId, newPointsForRobot: Stream[RouteWaypoint]) =
+      def update(robotId: Robot.Id, newPointsForRobot: Stream[RouteWaypoint]) =
         Waypoints(waypoints + (robotId -> newPointsForRobot))
     }
   }

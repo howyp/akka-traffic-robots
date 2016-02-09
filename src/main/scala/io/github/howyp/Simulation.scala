@@ -7,7 +7,7 @@ import scala.io.Source
 
 trait Simulation {
   def tubeStations: List[TubeStation]
-  def waypointSource: Map[RobotId, Stream[RouteWaypoint]]
+  def waypointSource: Map[Robot.Id, Stream[RouteWaypoint]]
   def trafficConditionGenerator: () => TrafficCondition
   def system: ActorSystem
 
@@ -35,7 +35,7 @@ object SimulationFromFiles extends App {
       .map(_.getOrElse(throw new RuntimeException("Could not parse tube files")))
       .toList
 
-    val waypointSource: Map[RobotId, Stream[RouteWaypoint]] = robotIds.map { id =>
+    val waypointSource: Map[Robot.Id, Stream[RouteWaypoint]] = robotIds.map { id =>
       (id, Source.fromFile(s"data/robot/$id.csv").getLines().toStream
         .map(RouteWaypoint.parseLine)
         .map(_.getOrElse(throw new RuntimeException("Could not parse route files"))))

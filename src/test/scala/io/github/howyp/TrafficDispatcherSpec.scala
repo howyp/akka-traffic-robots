@@ -13,8 +13,8 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
   "The traffic dispatcher" - {
 
     val robotFactory = new Robot.Factory {
-      var createdRobots = List[RobotId]()
-      def apply(f: ActorRefFactory, robotId: RobotId) = {
+      var createdRobots = List[Robot.Id]()
+      def apply(f: ActorRefFactory, robotId: Robot.Id) = {
         createdRobots = robotId :: createdRobots
         TestProbe().ref
       }

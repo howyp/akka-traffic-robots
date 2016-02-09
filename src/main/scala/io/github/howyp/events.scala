@@ -4,9 +4,9 @@ import java.time.LocalDateTime
 
 import scala.util.Random
 
-trait SimulationEvent { val robotId: RobotId }
-case class TrafficReport(robotId: RobotId, timestamp: LocalDateTime, speed: Double, condition: TrafficCondition) extends SimulationEvent
-case class RobotMoved(robotId: RobotId, newLocation: Location) extends SimulationEvent
+trait SimulationEvent { val robotId: Robot.Id }
+case class TrafficReport(robotId: Robot.Id, timestamp: LocalDateTime, speed: Double, condition: TrafficCondition) extends SimulationEvent
+case class RobotMoved(robotId: Robot.Id, newLocation: Location) extends SimulationEvent
 
 trait TrafficCondition
 object TrafficCondition {

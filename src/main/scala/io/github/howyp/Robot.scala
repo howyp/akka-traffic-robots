@@ -5,7 +5,7 @@ import java.time.ZoneOffset
 import akka.actor.{Actor, ActorRef, ActorRefFactory, Props}
 import akka.event.LoggingReceive
 
-class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition) extends Actor {
+class Robot(id: Robot.Id, tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition) extends Actor {
 
   override def preStart() {
     context.parent ! Protocol.MorePointsRequired(id)
@@ -41,11 +41,13 @@ class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenera
   }
 }
 object Robot {
-  def props(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition) =
+  def props(id: Robot.Id, tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition) =
     Props.apply(new Robot(id, tubeStations, trafficConditionGenerator))
 
+  type Id = Int
+
   //TODO can this be replaced by just injecting props?
-  type Factory = (ActorRefFactory, RobotId) => ActorRef
+  type Factory = (ActorRefFactory, Robot.Id) => ActorRef
   object Factory {
     def apply(tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition): Factory =
       (f, id) => { f.actorOf(props(id, tubeStations, trafficConditionGenerator), id.toString) }

@@ -19,7 +19,6 @@ trait CsvParser[T] extends JavaTokenParsers {
   def quoted[T](parser: Parser[T]) = '"' ~> parser <~ '"'
 
   def record: Parser[T]
-  def lines: Parser[List[T]] = repsep(record, "\n")
 
   val parseLine = parse(record, _: String)
 }

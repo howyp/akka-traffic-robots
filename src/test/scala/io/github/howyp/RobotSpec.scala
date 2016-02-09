@@ -10,7 +10,7 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
   "A Robot" - {
     val locationWithoutATubeStation = Location(1.0, 1.0)
     val tubeStation = TubeStation("a", Location(2.0, 2.0))
-    val id: RobotId = 1234
+    val id: Robot.Id = 1234
     val timestamp1 = LocalDateTime.now()
     val timestamp2 = timestamp1.plusSeconds(1)
     val timestamp3 = timestamp2.plusSeconds(1)
