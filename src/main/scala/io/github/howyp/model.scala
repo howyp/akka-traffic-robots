@@ -1,5 +1,7 @@
 package io.github.howyp
 
+import java.time.LocalDateTime
+
 import io.github.howyp.parse.CsvParser
 
 import scala.util.Random
@@ -27,10 +29,11 @@ object TubeStation extends CsvParser[TubeStation] {
   }
 }
 
-case class RouteWaypoint(timestamp: String, location: Location)
+case class RouteWaypoint(timestamp: LocalDateTime, location: Location)
 object RouteWaypoint extends CsvParser[RouteWaypoint] {
-  def record: Parser[RouteWaypoint] = (integer ~ "," ~ quotedDouble ~ "," ~ quotedDouble ~ "," ~ quotedString) map {
-    case robotId ~ _ ~ latitude ~ _ ~ longitude ~ _ ~ timestamp => RouteWaypoint(timestamp, Location(latitude, longitude))
+  def record: Parser[RouteWaypoint] = (integer ~ "," ~ quotedDouble ~ "," ~ quotedDouble ~ "," ~ quotedTimestamp) map {
+    case robotId ~ _ ~ latitude ~ _ ~ longitude ~ _ ~ timestamp =>
+      RouteWaypoint(timestamp, Location(latitude, longitude))
   }
 }
 

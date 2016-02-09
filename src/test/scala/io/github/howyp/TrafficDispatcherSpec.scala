@@ -1,5 +1,7 @@
 package io.github.howyp
 
+import java.time.LocalDateTime
+
 import akka.actor.ActorRefFactory
 import akka.testkit.{TestFSMRef, TestProbe}
 import io.github.howyp.test.actors.ActorSpec
@@ -19,18 +21,18 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
     }
     val dispatcher = TestFSMRef(new TrafficDispatcher(robotFactory))
     val points = List(
-      RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = "2011-03-22 08:01:40"),
-      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = "2011-03-22 08:01:41"),
-      RouteWaypoint(location = Location(51.487492,-0.095382), timestamp = "2011-03-22 08:01:42"),
-      RouteWaypoint(location = Location(51.487545,-0.095404), timestamp = "2011-03-22 08:01:43"),
-      RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = "2011-03-22 08:01:44"),
-      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = "2011-03-22 08:01:45"),
-      RouteWaypoint(location = Location(51.487492,-0.095382), timestamp = "2011-03-22 08:01:46"),
-      RouteWaypoint(location = Location(51.487545,-0.095404), timestamp = "2011-03-22 08:01:47"),
-      RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = "2011-03-22 08:01:48"),
-      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = "2011-03-22 08:01:49"),
-      RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = "2011-03-22 08:01:50"),
-      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = "2011-03-22 08:01:51")
+      RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = LocalDateTime.parse("2011-03-22T08:01:40")),
+      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = LocalDateTime.parse("2011-03-22T08:01:41")),
+      RouteWaypoint(location = Location(51.487492,-0.095382), timestamp = LocalDateTime.parse("2011-03-22T08:01:42")),
+      RouteWaypoint(location = Location(51.487545,-0.095404), timestamp = LocalDateTime.parse("2011-03-22T08:01:43")),
+      RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = LocalDateTime.parse("2011-03-22T08:01:44")),
+      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = LocalDateTime.parse("2011-03-22T08:01:45")),
+      RouteWaypoint(location = Location(51.487492,-0.095382), timestamp = LocalDateTime.parse("2011-03-22T08:01:46")),
+      RouteWaypoint(location = Location(51.487545,-0.095404), timestamp = LocalDateTime.parse("2011-03-22T08:01:47")),
+      RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = LocalDateTime.parse("2011-03-22T08:01:48")),
+      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = LocalDateTime.parse("2011-03-22T08:01:49")),
+      RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = LocalDateTime.parse("2011-03-22T08:01:50")),
+      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = LocalDateTime.parse("2011-03-22T08:01:51"))
     )
     val robotId1 = 1234
     val robotId2 = 5678

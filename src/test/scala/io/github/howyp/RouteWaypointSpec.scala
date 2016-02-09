@@ -1,5 +1,7 @@
 package io.github.howyp
 
+import java.time.LocalDateTime
+
 import io.github.howyp.test.parsers.ParseResultMatchers
 import org.scalatest.{FreeSpec, Matchers}
 
@@ -8,7 +10,7 @@ class RouteWaypointSpec extends FreeSpec with Matchers with ParseResultMatchers 
     "can be parsed from a CSV line" - {
       "given a valid example then it should extract robot ID, timestamp and location" in {
         RouteWaypoint.parseLine("5937,\"51.476002\",\"-0.096826\",\"2011-03-22 07:58:05\"") should parseTo (
-          RouteWaypoint(timestamp = "2011-03-22 07:58:05", location = Location(51.476002, -0.096826))
+          RouteWaypoint(timestamp = LocalDateTime.parse("2011-03-22T07:58:05"), location = Location(51.476002, -0.096826))
         )
       }
       "given a line with a missing quote then it should not parse" in {

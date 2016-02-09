@@ -1,5 +1,7 @@
 package io.github.howyp
 
+import java.time.LocalDateTime
+
 import akka.testkit.{TestActorRef, TestProbe}
 import io.github.howyp.test.actors.{ActorSpec, EventStreamListening}
 import org.scalatest.{FreeSpec, Matchers}
@@ -9,6 +11,8 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
     val locationWithoutATubeStation = Location(1.0, 1.0)
     val tubeStation = TubeStation("a", Location(2.0, 2.0))
     val id: RobotId = 1234
+    val timestamp1 = LocalDateTime.now()
+    val timestamp2 = timestamp1.plusSeconds(1)
 
     val dispatcher = TestProbe()
     val robot = TestActorRef(
@@ -23,17 +27,17 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
     }
 
     "after receiving a waypoint, should travel to that point" in {
-      robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = "1", location = locationWithoutATubeStation))
+      robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = timestamp1, location = locationWithoutATubeStation))
       eventStream.expectMsg(RobotMoved(id, locationWithoutATubeStation))
     }
 
     "after receiving a waypoint that is in the same location as the tube station, emit a traffic report for that location" in {
-      robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = "2", tubeStation.location))
+      robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = timestamp2, tubeStation.location))
       eventStream.expectMsgAllOf(
         RobotMoved(id, tubeStation.location),
         TrafficReport(
           robotId = id,
-          timestamp = "2",
+          timestamp = timestamp2,
           speed = 0,
           condition = TrafficCondition.Heavy
         )
@@ -42,12 +46,12 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
 
     "after receiving a waypoint that is with 350m of a tube station, emit a traffic report for that location" in {
       val locationNearStation = Location(tubeStation.location.latitude, tubeStation.location.longitude + 0.001)
-      robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = "2", locationNearStation))
+      robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = timestamp2, locationNearStation))
       eventStream.expectMsgAllOf(
         RobotMoved(id, locationNearStation),
         TrafficReport(
           robotId = id,
-          timestamp = "2",
+          timestamp = timestamp2,
           speed = 0,
           condition = TrafficCondition.Heavy
         )

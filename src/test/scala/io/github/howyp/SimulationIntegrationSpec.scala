@@ -1,5 +1,7 @@
 package io.github.howyp
 
+import java.time.LocalDateTime
+
 import akka.actor.ActorSystem
 import akka.testkit.{TestProbe, ImplicitSender, TestKit}
 import io.github.howyp.test.actors.EventStreamListening
@@ -25,7 +27,7 @@ class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system)
 
       val firstRobotId = 1
       val secondRobotId = 2
-      val time1 = "1"
+      val time1 = LocalDateTime.now()
       val s = new Simulation {
         val system = _system
         val waypointSource = Map(
