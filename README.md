@@ -14,7 +14,7 @@ There are two main types of `Actor`:
 
 Waypoint and tube station data is read from CSV files using Scala's `ParserCombinator` library.
 
-Individual tests for each actor class prove much of the functionality, whilst the `SimulationIntegrationSpec` demonstrates all actors integrating over a simple scenario.
+Individual tests for each actor class describe much of the functionality, whilst the `SimulationIntegrationSpec` demonstrates the two actor types integrating over a simple scenario.
 
 ### Running
 
