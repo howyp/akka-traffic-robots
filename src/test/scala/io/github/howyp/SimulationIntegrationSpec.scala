@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import io.github.howyp.test.actors.EventStreamListening
+import org.scalatest.concurrent.Eventually
 import org.scalatest.{BeforeAndAfterAll, FreeSpecLike, Matchers}
 
 class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system)
@@ -12,29 +13,22 @@ class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system)
   with FreeSpecLike
   with Matchers
   with BeforeAndAfterAll
-  with EventStreamListening {
+  with EventStreamListening
+  with Eventually {
 
   def this() = this(ActorSystem("SimulationIntegrationSpec"))
 
   listenOnEventStreamFor(classOf[SimulationEvent])
 
   "The simulation" - {
-    "should emit two traffic reports when each robot is sent to waypoints near stations, and then shut down" in {
-      val locationZero = Location(0,0)
-      val locationNearZero = Location(0.001,0.001)
-
-      locationZero.distanceInMeters(locationNearZero) should be < 350.0
-
-      val firstRobotId = 1
-      val secondRobotId = 2
-      val time1 = LocalDateTime.parse("2011-03-22T08:01:42")
+    "in a very simple situation should integrate together to emit traffic reports and then shut down" in new TestData {
       val s = new Simulation {
         val system = _system
         val waypointSource = Map(
-          firstRobotId -> Stream(RouteWaypoint(timestamp = time1, location = locationZero)),
-          secondRobotId -> Stream(RouteWaypoint(timestamp = time1, location = locationNearZero))
+          firstRobotId -> Stream(RouteWaypoint(timestamp = time1, location = tubeStation.location)),
+          secondRobotId -> Stream(RouteWaypoint(timestamp = time1, location = locationNearTubeStation))
         )
-        val tubeStations = List(TubeStation("Mornington Cresent", locationZero))
+        val tubeStations = List(tubeStation)
         val trafficConditionGenerator = () => TrafficCondition.Light
       }
 
@@ -43,23 +37,26 @@ class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system)
       eventStream.receiveN(4) should contain allOf (
         TrafficReport(
           robotId = firstRobotId,
-          timestamp = RouteWaypoint(timestamp = time1, location = locationZero).timestamp,
+          timestamp = RouteWaypoint(timestamp = time1, location = tubeStation.location).timestamp,
           speed = 0,
           condition = TrafficCondition.Light
         ),
         TrafficReport(
           robotId = secondRobotId,
-          timestamp = RouteWaypoint(timestamp = time1, location = locationNearZero).timestamp,
+          timestamp = RouteWaypoint(timestamp = time1, location = locationNearTubeStation).timestamp,
           speed = 0,
           condition = TrafficCondition.Light
         )
       )
+
+      eventually (system should be ('terminated))
     }
-
   }
-
-  override def afterAll {
-    system.shutdown()
+  trait TestData {
+    val tubeStation = TubeStation("Mornington Cresent", Location(0,0))
+    val locationNearTubeStation = Location(0.001,0.001)
+    val firstRobotId = 1
+    val secondRobotId = 2
+    val time1 = LocalDateTime.parse("2011-03-22T08:01:42")
   }
 }
-
