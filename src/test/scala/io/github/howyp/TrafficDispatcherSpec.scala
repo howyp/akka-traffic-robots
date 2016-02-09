@@ -80,6 +80,11 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
       )
       dispatcher.stateData.asInstanceOf[Data.Waypoints].waypoints should be (Map(robotId1 -> Stream.empty))
     }
+    "should not reply if more routes are requested but none remain for that robot" in {
+      val testChildRobot = TestProbe()
+      dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot.ref)
+      testChildRobot.expectNoMsg()
+    }
   }
 }
 

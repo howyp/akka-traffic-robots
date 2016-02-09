@@ -23,10 +23,12 @@ class TrafficDispatcher(robotFactory: Robot.Factory) extends FSM[TrafficDispatch
       waypoints.get(robotId) match {
         case None => stay()
         case Some(waypointsForRobot) => waypointsForRobot.splitAt (10) match {
+          case (Stream.Empty, _) =>
+            stay()
           case (firstTen, remaining) =>
-          for (point <- firstTen) sender () ! VisitWaypoint (point)
-          sender () ! EndOfWaypointBatch
-          stay () using Data.Waypoints (waypoints + (robotId -> remaining) )
+            for (point <- firstTen) sender () ! VisitWaypoint (point)
+            sender() ! EndOfWaypointBatch
+            stay() using Data.Waypoints (waypoints + (robotId -> remaining) )
         }
       }
   }
