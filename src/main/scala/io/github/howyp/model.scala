@@ -13,7 +13,7 @@ case class Location(latitude: Double, longitude: Double) {
     val deltaLong = math.toRadians(other.longitude - this.longitude)
     val a = math.pow(math.sin(deltaLat / 2), 2) + math.cos(math.toRadians(this.latitude)) * math.cos(math.toRadians(other.latitude)) * math.pow(math.sin(deltaLong / 2), 2)
     val greatCircleDistance = 2 * math.asin(math.sqrt(a))
-    Location.radiusOfEarthKm * greatCircleDistance / 1000
+    Location.radiusOfEarthKm * greatCircleDistance * 1000
   }
 }
 object Location {
