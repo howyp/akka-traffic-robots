@@ -4,9 +4,6 @@ import akka.actor.{Actor, ActorRef, ActorRefFactory, Props}
 
 class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition) extends Actor {
 
-  val stationsByLocation: Map[Location, TubeStation] =
-    tubeStations.map(s => s.location -> s)(collection.breakOut)
-
   override def preStart() {
     context.parent ! Protocol.MorePointsRequired(id)
   }
@@ -14,7 +11,7 @@ class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenera
   def receive = {
     case Protocol.VisitWaypoint(RouteWaypoint(timestamp, newLocation)) =>
       context.system.eventStream.publish(RobotMoved(id, newLocation))
-      stationsByLocation.get(newLocation) foreach { station =>
+      tubeStations.find(_.location.distanceInMeters(newLocation) < 350) foreach { station =>
         context.system.eventStream.publish(TrafficReport(id, timestamp, 0, trafficConditionGenerator()))
       }
     case Protocol.EndOfWaypointBatch =>

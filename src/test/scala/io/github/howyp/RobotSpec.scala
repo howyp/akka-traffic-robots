@@ -27,11 +27,24 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
       eventStream.expectMsg(RobotMoved(id, locationWithoutATubeStation))
     }
 
-    "after receiving a waypoint that is in the same location as the tube station, emit" +
-      "a traffic report for that location" in {
+    "after receiving a waypoint that is in the same location as the tube station, emit a traffic report for that location" in {
       robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = "2", tubeStation.location))
       eventStream.expectMsgAllOf(
         RobotMoved(id, tubeStation.location),
+        TrafficReport(
+          robotId = id,
+          timestamp = "2",
+          speed = 0,
+          condition = TrafficCondition.Heavy
+        )
+      )
+    }
+
+    "after receiving a waypoint that is with 350m of a tube station, emit a traffic report for that location" in {
+      val locationNearStation = Location(tubeStation.location.latitude, tubeStation.location.longitude + 0.001)
+      robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = "2", locationNearStation))
+      eventStream.expectMsgAllOf(
+        RobotMoved(id, locationNearStation),
         TrafficReport(
           robotId = id,
           timestamp = "2",

@@ -17,23 +17,37 @@ class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system)
   listenOnEventStreamFor(classOf[SimulationEvent])
 
   "The simulation" - {
-    "should emit one traffic report when there is one waypoint at the same location as a station" in {
+    "should emit two traffic reports when each robot is sent to waypoints near stations" in {
       val locationZero = Location(0,0)
+      val locationNearZero = Location(0.001,0.001)
+
+      locationZero.distanceInMeters(locationNearZero) should be < 350.0
+
       val firstRobotId = 1
-      val waypointAtTime1 = RouteWaypoint(timestamp = "1", location = locationZero)
+      val secondRobotId = 2
+      val time1 = "1"
       val s = new Simulation {
         val system = _system
-        val waypointSource = Map(firstRobotId -> Stream(waypointAtTime1))
+        val waypointSource = Map(
+          firstRobotId -> Stream(RouteWaypoint(timestamp = time1, location = locationZero)),
+          secondRobotId -> Stream(RouteWaypoint(timestamp = time1, location = locationNearZero))
+        )
         val tubeStations = List(TubeStation("Mornington Cresent", locationZero))
         val trafficConditionGenerator = () => TrafficCondition.Light
       }
 
       s.run()
 
-      eventStream.receiveN(2) should contain (
+      eventStream.receiveN(4) should contain allOf (
         TrafficReport(
           robotId = firstRobotId,
-          timestamp = waypointAtTime1.timestamp,
+          timestamp = RouteWaypoint(timestamp = time1, location = locationZero).timestamp,
+          speed = 0,
+          condition = TrafficCondition.Light
+        ),
+        TrafficReport(
+          robotId = secondRobotId,
+          timestamp = RouteWaypoint(timestamp = time1, location = locationNearZero).timestamp,
           speed = 0,
           condition = TrafficCondition.Light
         )
