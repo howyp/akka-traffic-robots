@@ -3,17 +3,17 @@ package io.github.howyp
 import akka.actor.{FSM, Props}
 import akka.event.LoggingReceive
 import io.github.howyp.Protocol.{EndOfWaypointBatch, VisitWaypoint}
-import scala.concurrent.duration._
 
 class TrafficDispatcher(robotFactory: Robot.Factory) extends FSM[TrafficDispatcher.State, TrafficDispatcher.Data] {
   import TrafficDispatcher.{Data, State}
 
   startWith(State.Initialised, Data.Empty)
 
+
   when(State.Initialised) {
     case Event(Protocol.AddWaypoints(robotId, stream), Data.Empty) =>
       robotFactory(context, robotId)
-      goto (State.Ready) using Data.Waypoints(Map(robotId -> stream))
+      goto (State.Ready) using Data.Waypoints(Map(robotId -> stream.filter(`isBefore8:10AM`)))
   }
 
   when(State.Ready) {
@@ -38,6 +38,11 @@ class TrafficDispatcher(robotFactory: Robot.Factory) extends FSM[TrafficDispatch
             stay() replying EndOfWaypointBatch using waypoints.update(robotId, remaining)
         }
       }
+  }
+
+  def `isBefore8:10AM`(w: RouteWaypoint) = {
+    val t = w.timestamp
+    t.getHour < 8 || (t.getHour == 8 && t.getMinute < 10)
   }
 
   override def receive = LoggingReceive(super.receive)

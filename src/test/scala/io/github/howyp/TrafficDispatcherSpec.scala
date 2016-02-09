@@ -20,6 +20,7 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
       }
     }
     val dispatcher = TestFSMRef(new TrafficDispatcher(robotFactory))
+    val `waypointAfter8:10AM` = RouteWaypoint(location = Location(51.487381, -0.095346), timestamp = LocalDateTime.parse("2011-03-22T08:10:00"))
     val points = List(
       RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = LocalDateTime.parse("2011-03-22T08:01:40")),
       RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = LocalDateTime.parse("2011-03-22T08:01:41")),
@@ -32,7 +33,8 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
       RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = LocalDateTime.parse("2011-03-22T08:01:48")),
       RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = LocalDateTime.parse("2011-03-22T08:01:49")),
       RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = LocalDateTime.parse("2011-03-22T08:01:50")),
-      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = LocalDateTime.parse("2011-03-22T08:01:51"))
+      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = LocalDateTime.parse("2011-03-22T08:01:51")),
+      RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = LocalDateTime.parse("2011-03-22T08:08:59"))
     )
     val robotId1 = 1234
     val robotId2 = 5678
@@ -41,7 +43,7 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
       dispatcher should have ('stateName (State.Initialised), 'stateData (Data.Empty))
     }
     "allow a set of waypoints to be configured" in {
-      dispatcher ! Protocol.AddWaypoints(robotId = robotId1, waypoints = points.toStream)
+      dispatcher ! Protocol.AddWaypoints(robotId = robotId1, waypoints = points.toStream #::: Stream(`waypointAfter8:10AM`))
       dispatcher.stateData.asInstanceOf[Data.Waypoints].waypoints should be (Map(robotId1 -> points.toStream))
     }
     "set up robots with the given IDs to patrol the town" in {
@@ -64,7 +66,7 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
         Protocol.EndOfWaypointBatch
       )
       dispatcher.stateData.asInstanceOf[Data.Waypoints].waypoints should be (
-        Map(robotId1 -> Stream(points(10), points (11)))
+        Map(robotId1 -> Stream(points(10), points (11), points (12)))
       )
     }
     "should only reply with a routes for the requesting robot" in {
@@ -86,12 +88,13 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
         Protocol.EndOfWaypointBatch
       )
     }
-    "should reply with a set of routes when requested, with only those that remain if less than the batch size" in {
+    "should reply with a set of routes when requested, with only those that remain that are before 8:10 AM, if less than the batch size" in {
       val testChildRobot1 = TestProbe()
       dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot1.ref)
       testChildRobot1.expectMsgAllOf(
         Protocol.VisitWaypoint(points(10)),
         Protocol.VisitWaypoint(points(11)),
+        Protocol.VisitWaypoint(points(12)),
         Protocol.EndOfWaypointBatch
       )
       dispatcher.stateData.asInstanceOf[Data.Waypoints].waypoints(robotId1) should be (empty)

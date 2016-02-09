@@ -3,7 +3,7 @@ package io.github.howyp
 import java.time.LocalDateTime
 
 import akka.actor.ActorSystem
-import akka.testkit.{TestProbe, ImplicitSender, TestKit}
+import akka.testkit.{ImplicitSender, TestKit}
 import io.github.howyp.test.actors.EventStreamListening
 import org.scalatest.{BeforeAndAfterAll, FreeSpecLike, Matchers}
 
@@ -19,7 +19,7 @@ class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system)
   listenOnEventStreamFor(classOf[SimulationEvent])
 
   "The simulation" - {
-    "should emit two traffic reports when each robot is sent to waypoints near stations" in {
+    "should emit two traffic reports when each robot is sent to waypoints near stations, and then shut down" in {
       val locationZero = Location(0,0)
       val locationNearZero = Location(0.001,0.001)
 
@@ -27,7 +27,7 @@ class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system)
 
       val firstRobotId = 1
       val secondRobotId = 2
-      val time1 = LocalDateTime.now()
+      val time1 = LocalDateTime.parse("2011-03-22T08:01:42")
       val s = new Simulation {
         val system = _system
         val waypointSource = Map(
