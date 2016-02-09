@@ -1,6 +1,7 @@
 package io.github.howyp
 
 import akka.actor.{Actor, ActorRef, ActorRefFactory, Props}
+import akka.event.LoggingReceive
 
 class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition) extends Actor {
 
@@ -8,7 +9,7 @@ class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenera
     context.parent ! Protocol.MorePointsRequired(id)
   }
 
-  def receive = {
+  def receive = LoggingReceive {
     case Protocol.VisitWaypoint(RouteWaypoint(timestamp, newLocation)) =>
       context.system.eventStream.publish(RobotMoved(id, newLocation))
       tubeStations.find(_.location.distanceInMeters(newLocation) < 350) foreach { station =>

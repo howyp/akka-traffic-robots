@@ -1,6 +1,7 @@
 package io.github.howyp
 
 import akka.actor.{FSM, Props}
+import akka.event.LoggingReceive
 import io.github.howyp.Protocol.{EndOfWaypointBatch, VisitWaypoint}
 
 class TrafficDispatcher(robotFactory: Robot.Factory) extends FSM[TrafficDispatcher.State, TrafficDispatcher.Data] {
@@ -32,6 +33,8 @@ class TrafficDispatcher(robotFactory: Robot.Factory) extends FSM[TrafficDispatch
         }
       }
   }
+
+  override def receive = LoggingReceive(super.receive)
 }
 object TrafficDispatcher {
   def props(trafficConditionGenerator: () => TrafficCondition, tubeStations: List[TubeStation]) =
