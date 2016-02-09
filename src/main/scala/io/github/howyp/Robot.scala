@@ -8,7 +8,7 @@ class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenera
     tubeStations.map(s => s.location -> s)(collection.breakOut)
 
   override def preStart() {
-    context.parent ! TrafficDispatcher.Protocol.MorePointsRequired
+    context.parent ! TrafficDispatcher.Protocol.MorePointsRequired(id)
   }
 
   def receive = {
@@ -17,6 +17,8 @@ class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenera
       stationsByLocation.get(newLocation) foreach { station =>
         context.system.eventStream.publish(TrafficReport(id, timestamp, 0, trafficConditionGenerator()))
       }
+    case TrafficDispatcher.Protocol.EndOfWaypointBatch =>
+      context.parent ! TrafficDispatcher.Protocol.MorePointsRequired(id)
   }
 }
 object Robot {

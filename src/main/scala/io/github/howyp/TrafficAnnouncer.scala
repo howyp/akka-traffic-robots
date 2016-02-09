@@ -3,9 +3,12 @@ package io.github.howyp
 import akka.actor.Actor
 
 class TrafficAnnouncer extends Actor {
-  context.system.eventStream.subscribe(self, classOf[TrafficReport])
+  context.system.eventStream.subscribe(self, classOf[SimulationEvent])
 
-  def receive = {
-    case a: TrafficReport => println(a)
+  var eventCounter = 0
+
+  def receive = { case a =>
+    println(s"$eventCounter. $a")
+    eventCounter = eventCounter + 1
   }
 }

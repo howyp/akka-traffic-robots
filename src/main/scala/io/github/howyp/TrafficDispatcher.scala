@@ -1,8 +1,8 @@
 package io.github.howyp
 
-import akka.actor.{Props, FSM}
+import akka.actor.{FSM, Props}
 import io.github.howyp.TrafficDispatcher.Protocol
-import io.github.howyp.TrafficDispatcher.Protocol.{EndOfWaypointBatch, MorePointsRequired, VisitWaypoint}
+import io.github.howyp.TrafficDispatcher.Protocol.{EndOfWaypointBatch, VisitWaypoint}
 
 class TrafficDispatcher(robotFactory: Robot.Factory) extends FSM[TrafficDispatcher.State, TrafficDispatcher.Data] {
   import TrafficDispatcher.{Data, State}
@@ -12,19 +12,23 @@ class TrafficDispatcher(robotFactory: Robot.Factory) extends FSM[TrafficDispatch
   when(State.Initialised) {
     case Event(Protocol.AddWaypoints(robotId, stream), Data.Empty) =>
       robotFactory(context, robotId)
-      goto (State.Ready) using Data.Waypoints(stream)
+      goto (State.Ready) using Data.Waypoints(Map(robotId -> stream))
   }
 
   when(State.Ready) {
     case Event(Protocol.AddWaypoints(robotId, stream), Data.Waypoints(w)) =>
       robotFactory(context, robotId)
-      goto (State.Ready) using Data.Waypoints(w #::: stream)
+      stay() using Data.Waypoints(w + (robotId -> stream))
 
-    case Event(MorePointsRequired, Data.Waypoints(stream)) =>
-      stream.splitAt(10) match { case (firstTen, remaining) =>
-        for (point <- firstTen) sender() ! VisitWaypoint(point)
-        sender() ! EndOfWaypointBatch
-        stay() using Data.Waypoints(remaining)
+    case Event(Protocol.MorePointsRequired(robotId), Data.Waypoints(waypoints)) =>
+      waypoints.get(robotId) match {
+        case None => stay()
+        case Some(waypointsForRobot) => waypointsForRobot.splitAt (10) match {
+          case (firstTen, remaining) =>
+          for (point <- firstTen) sender () ! VisitWaypoint (point)
+          sender () ! EndOfWaypointBatch
+          stay () using Data.Waypoints (waypoints + (robotId -> remaining) )
+        }
       }
   }
 }
@@ -41,13 +45,13 @@ object TrafficDispatcher {
   trait Data
   object Data {
     case object Empty extends Data
-    case class Waypoints(w: Stream[RouteWaypoint]) extends Data
+    case class Waypoints(waypoints: Map[RobotId, Stream[RouteWaypoint]]) extends Data
   }
 
   //TODO maybe extract outside?
   object Protocol {
     case class AddWaypoints(robotId: RobotId, waypoints: Stream[RouteWaypoint])
-    case object MorePointsRequired
+    case class MorePointsRequired(robotId: RobotId)
     case class VisitWaypoint(waypoint: RouteWaypoint)
     case object EndOfWaypointBatch
   }

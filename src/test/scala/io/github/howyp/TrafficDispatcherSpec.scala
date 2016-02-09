@@ -2,7 +2,6 @@ package io.github.howyp
 
 import akka.actor.ActorRefFactory
 import akka.testkit.{TestFSMRef, TestProbe}
-import io.github.howyp.TrafficDispatcher.Protocol.AddWaypoints
 import io.github.howyp.test.actors.ActorSpec
 import org.scalatest.{FreeSpec, Matchers}
 
@@ -33,21 +32,23 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
       RouteWaypoint(location = Location(51.487381,-0.095346), timestamp = "2011-03-22 08:01:50"),
       RouteWaypoint(location = Location(51.487434,-0.095362), timestamp = "2011-03-22 08:01:51")
     )
+    val robotId1 = 1234
+    val robotId2 = 5678
 
     "start in an initial state" in {
       dispatcher should have ('stateName (State.Initialised), 'stateData (Data.Empty))
     }
     "allow a set of waypoints to be configured" in {
-      dispatcher ! Protocol.AddWaypoints(robotId = 5937, waypoints = points.toStream)
-      dispatcher.stateData.asInstanceOf[Data.Waypoints].w.toList should contain theSameElementsInOrderAs points
+      dispatcher ! Protocol.AddWaypoints(robotId = robotId1, waypoints = points.toStream)
+      dispatcher.stateData.asInstanceOf[Data.Waypoints].waypoints should be (Map(robotId1 -> points.toStream))
     }
     "set up robots with the given IDs to patrol the town" in {
-      robotFactory.createdRobots should contain only 5937
+      robotFactory.createdRobots should contain only robotId1
     }
     "should reply with a set of routes when requested, limited to the batch size" in {
-      val fakeChild = TestProbe()
-      dispatcher.!(Protocol.MorePointsRequired)(fakeChild.ref)
-      fakeChild.expectMsgAllOf(
+      val testChildRobot = TestProbe()
+      dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot.ref)
+      testChildRobot.expectMsgAllOf(
         Protocol.VisitWaypoint(points(0)),
         Protocol.VisitWaypoint(points(1)),
         Protocol.VisitWaypoint(points(2)),
@@ -60,17 +61,24 @@ class TrafficDispatcherSpec extends FreeSpec with Matchers with ActorSpec {
         Protocol.VisitWaypoint(points(9)),
         Protocol.EndOfWaypointBatch
       )
-      dispatcher.stateData.asInstanceOf[Data.Waypoints].w.toList should be (List(points(10), points (11)))
+      dispatcher.stateData.asInstanceOf[Data.Waypoints].waypoints should be (
+        Map(robotId1 -> Stream(points(10), points (11)))
+      )
+    }
+    "should only reply with a routes for the requesting robot" in {
+      val testChildRobot = TestProbe()
+      dispatcher.!(Protocol.MorePointsRequired(robotId2))(testChildRobot.ref)
+      testChildRobot.expectNoMsg()
     }
     "should reply with a set of routes when requested, with only those that remain if less than the batch size" in {
-      val fakeChild = TestProbe()
-      dispatcher.!(Protocol.MorePointsRequired)(fakeChild.ref)
-      fakeChild.expectMsgAllOf(
+      val testChildRobot = TestProbe()
+      dispatcher.!(Protocol.MorePointsRequired(robotId1))(testChildRobot.ref)
+      testChildRobot.expectMsgAllOf(
         Protocol.VisitWaypoint(points(10)),
         Protocol.VisitWaypoint(points(11)),
         Protocol.EndOfWaypointBatch
       )
-      dispatcher.stateData.asInstanceOf[Data.Waypoints].w.toList should be (empty)
+      dispatcher.stateData.asInstanceOf[Data.Waypoints].waypoints should be (Map(robotId1 -> Stream.empty))
     }
   }
 }

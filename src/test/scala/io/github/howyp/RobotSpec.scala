@@ -19,7 +19,7 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
     listenOnEventStreamFor(classOf[SimulationEvent])
 
     "should request some waypoints from the dispatcher on startup" in {
-      dispatcher.expectMsg(TrafficDispatcher.Protocol.MorePointsRequired)
+      dispatcher.expectMsg(TrafficDispatcher.Protocol.MorePointsRequired(id))
     }
 
     "after receiving a waypoint, should travel to that point" in {
@@ -39,6 +39,11 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
           condition = TrafficCondition.Heavy
         )
       )
+    }
+
+    "after processing all of the configured waypoint batch, request more" in {
+      robot ! TrafficDispatcher.Protocol.EndOfWaypointBatch
+      dispatcher.expectMsg(TrafficDispatcher.Protocol.MorePointsRequired(id))
     }
   }
 }
