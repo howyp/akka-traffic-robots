@@ -8,15 +8,15 @@ import scala.util.parsing.combinator.JavaTokenParsers
 trait CsvParser[T] extends JavaTokenParsers {
   override protected val whiteSpace = """[ \t]""".r
 
+  def string: Parser[String] = "[^\"]*".r
   def double: Parser[Double] = floatingPointNumber map (_.toDouble)
-  def integer: Parser[Int] = "\\d*".r map (_.toInt)
+  def integer: Parser[Int]   = "\\d*".r map (_.toInt)
+
   def timestamp: Parser[LocalDateTime] = {
     """\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}""".r map (_.replace(' ', 'T')) map (LocalDateTime.parse)
   }
 
-  def quotedString: Parser[String]           = '"' ~> "[^\"]*".r    <~ '"'
-  def quotedDouble: Parser[Double]           = '"' ~> double        <~ '"'
-  def quotedTimestamp: Parser[LocalDateTime] = '"' ~> timestamp     <~ '"'
+  def quoted[T](parser: Parser[T]) = '"' ~> parser <~ '"'
 
   def record: Parser[T]
   def lines: Parser[List[T]] = repsep(record, "\n")

@@ -6,8 +6,6 @@ import io.github.howyp.parse.CsvParser
 
 import scala.util.Random
 
-//TODO getting a bit big?
-
 case class Location(latitude: Double, longitude: Double) {
 
   def distanceInMeters(other: Location): Double = {
@@ -24,28 +22,15 @@ object Location {
 
 case class TubeStation(name: String, location: Location)
 object TubeStation extends CsvParser[TubeStation] {
-  def record: Parser[TubeStation] = (quotedString ~ "," ~ double ~ "," ~ double) map {
+  def record: Parser[TubeStation] = (quoted(string) ~ "," ~ double ~ "," ~ double) map {
     case name ~ _ ~ latitude ~ _ ~ longitude => TubeStation(name, Location(latitude, longitude))
   }
 }
 
 case class RouteWaypoint(timestamp: LocalDateTime, location: Location)
 object RouteWaypoint extends CsvParser[RouteWaypoint] {
-  def record: Parser[RouteWaypoint] = (integer ~ "," ~ quotedDouble ~ "," ~ quotedDouble ~ "," ~ quotedTimestamp) map {
+  def record: Parser[RouteWaypoint] = (integer ~ "," ~ quoted(double) ~ "," ~ quoted(double) ~ "," ~ quoted(timestamp)) map {
     case robotId ~ _ ~ latitude ~ _ ~ longitude ~ _ ~ timestamp =>
       RouteWaypoint(timestamp, Location(latitude, longitude))
   }
-}
-
-trait TrafficCondition
-object TrafficCondition {
-  def random(): TrafficCondition = Random.nextInt(3) match {
-    case 0 => Light
-    case 1 => Medium
-    case 2 => Heavy
-  }
-
-  case object Light extends TrafficCondition
-  case object Medium extends TrafficCondition
-  case object Heavy extends TrafficCondition
 }
