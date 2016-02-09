@@ -8,16 +8,9 @@ import scala.util.Random
 
 case class Location(latitude: Double, longitude: Double) {
 
-  def distanceInMeters(other: Location): Double = {
-    val deltaLat = math.toRadians(other.latitude - this.latitude)
-    val deltaLong = math.toRadians(other.longitude - this.longitude)
-    val a = math.pow(math.sin(deltaLat / 2), 2) + math.cos(math.toRadians(this.latitude)) * math.cos(math.toRadians(other.latitude)) * math.pow(math.sin(deltaLong / 2), 2)
-    val greatCircleDistance = 2 * math.asin(math.sqrt(a))
-    Location.radiusOfEarthKm * greatCircleDistance * 1000
+  def distanceInMeters(other: Location) = {
+    Haversine.haversine(this.latitude, this.longitude, other.latitude, other.longitude) * 1000
   }
-}
-object Location {
-  val radiusOfEarthKm = 6372.8
 }
 
 case class TubeStation(name: String, location: Location)

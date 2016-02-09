@@ -9,10 +9,10 @@ class LocationSpec extends FreeSpec with Matchers {
         val l = Location(1.2345,5.6789)
         l.distanceInMeters(l) should be (0)
       }
-      "two sample locations should have the correct distance" in {
+      "two sample locations should have the same distance as specified in rosetta code" in {
         val l1 = Location(36.12, -86.67)
         val l2 = Location(33.94, -118.40)
-        l1.distanceInMeters(l2) should be (2887259.950607111)
+        l1.distanceInMeters(l2) should be (2887259.9506071107)
       }
     }
   }

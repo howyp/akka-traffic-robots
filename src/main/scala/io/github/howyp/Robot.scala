@@ -50,6 +50,6 @@ object Robot {
   type Factory = (ActorRefFactory, Robot.Id) => ActorRef
   object Factory {
     def apply(tubeStations: List[TubeStation], trafficConditionGenerator: () => TrafficCondition): Factory =
-      (f, id) => { f.actorOf(props(id, tubeStations, trafficConditionGenerator), id.toString) }
+      (f, id) => { f.actorOf(props(id, tubeStations, trafficConditionGenerator).withDispatcher("dispatcherWithOneThreadPerActor"), id.toString) }
   }
 }

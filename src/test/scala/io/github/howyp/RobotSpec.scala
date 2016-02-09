@@ -17,7 +17,7 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
 
     val dispatcher = TestProbe()
     val robot = TestActorRef(
-      props = Robot.props(id, List(tubeStation), () => TrafficCondition.Heavy),
+      props = Robot.props(id = id, tubeStations = List(tubeStation), trafficConditionGenerator = () => TrafficCondition.Heavy),
       supervisor = dispatcher.ref,
       name = "robot"
     )
