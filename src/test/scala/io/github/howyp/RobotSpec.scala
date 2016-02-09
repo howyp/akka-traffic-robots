@@ -13,6 +13,7 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
     val id: RobotId = 1234
     val timestamp1 = LocalDateTime.now()
     val timestamp2 = timestamp1.plusSeconds(1)
+    val timestamp3 = timestamp2.plusSeconds(1)
 
     val dispatcher = TestProbe()
     val robot = TestActorRef(
@@ -38,7 +39,7 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
         TrafficReport(
           robotId = id,
           timestamp = timestamp2,
-          speed = 0,
+          speed = 157269.8529731959,
           condition = TrafficCondition.Heavy
         )
       )
@@ -46,13 +47,13 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
 
     "after receiving a waypoint that is with 350m of a tube station, emit a traffic report for that location" in {
       val locationNearStation = Location(tubeStation.location.latitude, tubeStation.location.longitude + 0.001)
-      robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = timestamp2, locationNearStation))
+      robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = timestamp3, locationNearStation))
       eventStream.expectMsgAllOf(
         RobotMoved(id, locationNearStation),
         TrafficReport(
           robotId = id,
-          timestamp = timestamp2,
-          speed = 0,
+          timestamp = timestamp3,
+          speed = 111.15858648842158,
           condition = TrafficCondition.Heavy
         )
       )

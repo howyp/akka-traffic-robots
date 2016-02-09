@@ -55,6 +55,7 @@ class SimulationIntegrationSpec(_system: ActorSystem) extends TestKit(_system)
         )
       )
     }
+
   }
 
   override def afterAll {
