@@ -2,7 +2,7 @@ package io.github.howyp
 
 import java.time.LocalDateTime
 
-import akka.actor.{Terminated, ActorRefFactory}
+import akka.actor.ActorRefFactory
 import akka.testkit.{TestFSMRef, TestProbe}
 import io.github.howyp.test.actors.ActorSpec
 import org.scalatest.{FreeSpec, Matchers}
