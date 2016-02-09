@@ -13,7 +13,7 @@ class Robot(id: RobotId, tubeStations: List[TubeStation], trafficConditionGenera
 
   def receive = {
     case Protocol.VisitWaypoint(RouteWaypoint(timestamp, newLocation)) =>
-      context.system.eventStream.publish(RobotMoved(newLocation))
+      context.system.eventStream.publish(RobotMoved(id, newLocation))
       stationsByLocation.get(newLocation) foreach { station =>
         context.system.eventStream.publish(TrafficReport(id, timestamp, 0, trafficConditionGenerator()))
       }

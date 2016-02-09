@@ -24,14 +24,14 @@ class RobotSpec extends FreeSpec with Matchers with ActorSpec with EventStreamLi
 
     "after receiving a waypoint, should travel to that point" in {
       robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = "1", location = locationWithoutATubeStation))
-      eventStream.expectMsg(RobotMoved(locationWithoutATubeStation))
+      eventStream.expectMsg(RobotMoved(id, locationWithoutATubeStation))
     }
 
     "after receiving a waypoint that is in the same location as the tube station, emit" +
       "a traffic report for that location" in {
       robot ! Protocol.VisitWaypoint(RouteWaypoint(timestamp = "2", tubeStation.location))
       eventStream.expectMsgAllOf(
-        RobotMoved(tubeStation.location),
+        RobotMoved(id, tubeStation.location),
         TrafficReport(
           robotId = id,
           timestamp = "2",

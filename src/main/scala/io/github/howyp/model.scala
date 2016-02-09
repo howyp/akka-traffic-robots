@@ -1,15 +1,24 @@
 package io.github.howyp
 
-import java.security.Timestamp
-
 import io.github.howyp.parse.CsvParser
 
 import scala.util.Random
-import scala.util.parsing.combinator.JavaTokenParsers
 
 //TODO getting a bit big?
 
-case class Location(latitude: Double, longitude: Double)
+case class Location(latitude: Double, longitude: Double) {
+
+  def distanceInMeters(other: Location): Double = {
+    val deltaLat = math.toRadians(other.latitude - this.latitude)
+    val deltaLong = math.toRadians(other.longitude - this.longitude)
+    val a = math.pow(math.sin(deltaLat / 2), 2) + math.cos(math.toRadians(this.latitude)) * math.cos(math.toRadians(other.latitude)) * math.pow(math.sin(deltaLong / 2), 2)
+    val greatCircleDistance = 2 * math.asin(math.sqrt(a))
+    Location.radiusOfEarthKm * greatCircleDistance / 1000
+  }
+}
+object Location {
+  val radiusOfEarthKm = 6372.8
+}
 
 case class TubeStation(name: String, location: Location)
 object TubeStation extends CsvParser[TubeStation] {
@@ -24,10 +33,6 @@ object RouteWaypoint extends CsvParser[RouteWaypoint] {
     case robotId ~ _ ~ latitude ~ _ ~ longitude ~ _ ~ timestamp => RouteWaypoint(timestamp, Location(latitude, longitude))
   }
 }
-
-trait SimulationEvent
-case class TrafficReport(robotId: RobotId, timestamp: String, speed: Int, condition: TrafficCondition) extends SimulationEvent
-case class RobotMoved(newLocation: Location) extends SimulationEvent
 
 trait TrafficCondition
 object TrafficCondition {
